@@ -61,6 +61,9 @@
 
 
 
+#ifdef BLUEPILL
+const char* Hardware = "Blue Pill STM32F072";
+#endif
 #ifdef FYSETC_UCAN
 const char* Hardware = "FYSETC UCAN";
 #endif
@@ -138,7 +141,9 @@ void PollingInit(void)
 	TimerCallbackRegister2nd(&timerCallback, LED_Green_Toggle, LED_Green_Off); // be sure LED goes to off state
 
 	TimerCallbackRegisterOnly(&timerCallback, LED_Blue_Toggle);
+#ifndef BLUEPILL
 	TimerCallbackRepetitionStart(&timerCallback, LED_Blue_Toggle, 100, 6);
+#endif
 	TimerCallbackRegister2nd(&timerCallback, LED_Blue_Toggle, LED_Blue_Off); // be sure LED goes to off state
 #if defined (INNOMAKER_USB2CAN)
 	UART_DMA_EnableRxInterruptIdle(&uart1_msg);

@@ -54,9 +54,13 @@ DMA_HandleTypeDef hdma_usart1_tx;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+#ifndef BLUEPILL
 static void MX_DMA_Init(void);
+#endif
 static void MX_CAN_Init(void);
+#ifndef BLUEPILL
 static void MX_USART1_UART_Init(void);
+#endif
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -95,10 +99,14 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+#ifndef BLUEPILL
   MX_DMA_Init();
+#endif
   MX_CAN_Init();
   MX_USB_DEVICE_Init();
+#ifndef BLUEPILL
   MX_USART1_UART_Init();
+#endif
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -196,6 +204,7 @@ static void MX_CAN_Init(void)
 
 }
 
+#ifndef BLUEPILL
 /**
   * @brief USART1 Initialization Function
   * @param None
@@ -246,6 +255,7 @@ static void MX_DMA_Init(void)
   HAL_NVIC_EnableIRQ(DMA1_Channel2_3_IRQn);
 
 }
+#endif
 
 /**
   * @brief GPIO Initialization Function
@@ -260,6 +270,18 @@ static void MX_GPIO_Init(void)
   /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
+#ifdef BLUEPILL
+  __HAL_RCC_GPIOA_CLK_ENABLE(); /* USB on PA11/PA12. */
+  __HAL_RCC_GPIOC_CLK_ENABLE();
+
+  /* The on-board PC13 LED is active low; start with it off. */
+  HAL_GPIO_WritePin(LED_ACTIVITY_GPIO_Port, LED_ACTIVITY_Pin, GPIO_PIN_SET);
+  GPIO_InitStruct.Pin = LED_ACTIVITY_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(LED_ACTIVITY_GPIO_Port, &GPIO_InitStruct);
+#else
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
@@ -285,6 +307,7 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+#endif
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 

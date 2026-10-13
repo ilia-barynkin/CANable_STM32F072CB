@@ -22,6 +22,54 @@
 
 #include "main.h"
 
+#ifdef BLUEPILL
+/* TX and RX share one LED. Keep independent states so overlapping flashes
+ * cannot cancel each other out on the physical pin. */
+static bool txLedOn;
+static bool rxLedOn;
+
+static void LED_Activity_Update(void)
+{
+	HAL_GPIO_WritePin(LED_ACTIVITY_GPIO_Port, LED_ACTIVITY_Pin,
+			(txLedOn || rxLedOn) ? GPIO_PIN_RESET : GPIO_PIN_SET);
+}
+
+void LED_Green(bool state)
+{
+	txLedOn = state;
+	LED_Activity_Update();
+}
+
+void LED_Blue(bool state)
+{
+	rxLedOn = state;
+	LED_Activity_Update();
+}
+
+void LED_Green_Toggle(void)
+{
+	LED_Green(!txLedOn);
+}
+
+void LED_Blue_Toggle(void)
+{
+	LED_Blue(!rxLedOn);
+}
+
+void LED_Green_Off(void)
+{
+	LED_Green(false);
+}
+
+void LED_Blue_Off(void)
+{
+	LED_Blue(false);
+}
+
+void LED_InnomakerStatus(void)
+{
+}
+#else
 // TX
 void LED_Green_Toggle(void)
 {
@@ -94,5 +142,6 @@ void LED_Blue_Off(void)
 	HAL_GPIO_WritePin(LED_PA1_GPIO_Port, LED_PA1_Pin, GPIO_PIN_RESET); // Off
 #endif
 }
+#endif
 
 

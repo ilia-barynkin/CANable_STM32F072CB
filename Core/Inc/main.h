@@ -91,6 +91,10 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#ifdef BLUEPILL
+#define LED_ACTIVITY_Pin GPIO_PIN_13
+#define LED_ACTIVITY_GPIO_Port GPIOC
+#endif
 #define LED_PA0_Pin GPIO_PIN_0
 #define LED_PA0_GPIO_Port GPIOA
 #define LED_PA1_Pin GPIO_PIN_1

@@ -22,7 +22,7 @@
 */
 
 #include "main.h"
-#include "ringBuffer.h"
+#include "RingBuffer.h"
 
 
 void RingBuff_Ptr_Reset(RING_BUFF_STRUCT *ptr)
