@@ -23,8 +23,12 @@
 #include "usb_device.h"
 #include "usbd_core.h"
 #include "usbd_desc.h"
+#ifdef CANABLE_GS_USB
+#include "usbd_gs_usb.h"
+#else
 #include "usbd_cdc.h"
 #include "usbd_cdc_if.h"
+#endif
 
 /* USER CODE BEGIN Includes */
 
@@ -72,6 +76,12 @@ void MX_USB_DEVICE_Init(void)
   {
     Error_Handler();
   }
+#ifdef CANABLE_GS_USB
+  if (USBD_RegisterClass(&hUsbDeviceFS, &USBD_GS_USB) != USBD_OK)
+  {
+    Error_Handler();
+  }
+#else
   if (USBD_RegisterClass(&hUsbDeviceFS, &USBD_CDC) != USBD_OK)
   {
     Error_Handler();
@@ -80,6 +90,7 @@ void MX_USB_DEVICE_Init(void)
   {
     Error_Handler();
   }
+#endif
   if (USBD_Start(&hUsbDeviceFS) != USBD_OK)
   {
     Error_Handler();

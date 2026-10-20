@@ -320,7 +320,15 @@ USBD_StatusTypeDef USBD_LL_DataOutStage(USBD_HandleTypeDef *pdev,
         if ((pdev->pClass->EP0_RxReady != NULL) &&
             (pdev->dev_state == USBD_STATE_CONFIGURED))
         {
+#ifdef CANABLE_GS_USB
+          /* Preserve a class STALL when a control OUT payload is rejected. */
+          if (pdev->pClass->EP0_RxReady(pdev) != USBD_OK)
+          {
+            return USBD_FAIL;
+          }
+#else
           pdev->pClass->EP0_RxReady(pdev);
+#endif
         }
         USBD_CtlSendStatus(pdev);
       }

@@ -22,6 +22,10 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#ifdef CANABLE_GS_USB
+#include "gs_can.h"
+#include "usbd_gs_usb.h"
+#endif
 
 /* USER CODE END Includes */
 
@@ -103,6 +107,9 @@ int main(void)
   MX_DMA_Init();
 #endif
   MX_CAN_Init();
+#ifdef CANABLE_GS_USB
+  GS_CAN_Init();
+#endif
   MX_USB_DEVICE_Init();
 #ifndef BLUEPILL
   MX_USART1_UART_Init();
@@ -113,10 +120,18 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+#ifndef CANABLE_GS_USB
   PollingInit();
+#endif
   while (1)
   {
+#ifdef CANABLE_GS_USB
+      TimerCallbackPoll(&timerCallback);
+      GS_CAN_Poll();
+      USBD_GS_USB_Poll(&hUsbDeviceFS);
+#else
 	  PollingRoutine();
+#endif
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

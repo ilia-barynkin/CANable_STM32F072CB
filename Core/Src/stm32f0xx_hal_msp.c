@@ -110,7 +110,11 @@ void HAL_CAN_MspInit(CAN_HandleTypeDef* hcan)
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
     /* CAN interrupt Init */
+#ifdef CANABLE_GS_USB
+    HAL_NVIC_SetPriority(CEC_CAN_IRQn, 1, 0);
+#else
     HAL_NVIC_SetPriority(CEC_CAN_IRQn, 0, 0);
+#endif
     HAL_NVIC_EnableIRQ(CEC_CAN_IRQn);
     /* USER CODE BEGIN CAN_MspInit 1 */
 

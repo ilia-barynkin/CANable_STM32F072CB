@@ -33,21 +33,38 @@ if(CANABLE_BOARD_INDEX EQUAL -1)
 endif()
 list(GET CANABLE_BOARD_DEFINES ${CANABLE_BOARD_INDEX} CANABLE_BOARD_DEFINE)
 
+set(CANABLE_USB_PROTOCOL GS_USB CACHE STRING "USB protocol: SocketCAN gs_usb or legacy CAN-X CDC")
+set_property(CACHE CANABLE_USB_PROTOCOL PROPERTY STRINGS GS_USB CAN_X)
+if(CANABLE_USB_PROTOCOL STREQUAL "GS_USB")
+    set(CANABLE_PROTOCOL_SOURCES
+        Core/Src/gs_can.c
+        USB_DEVICE/App/usbd_gs_usb.c
+    )
+elseif(CANABLE_USB_PROTOCOL STREQUAL "CAN_X")
+    set(CANABLE_PROTOCOL_SOURCES
+        Core/Src/CAN_Buffer.c
+        Core/Src/CAN_Filter.c
+        Core/Src/CAN_Mode.c
+        Core/Src/ErrorStatus.c
+        Core/Src/IRQ_Handler.c
+        Core/Src/PollingRoutine.c
+        Core/Src/RingBuffer.c
+        Core/Src/STM32_UID.c
+        Core/Src/UART_DMA_Idle_Circular_Drv_STM32.c
+        Core/Src/USB_CAN_Convert.c
+        Core/Src/USB_CDC_Buffer.c
+        Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Src/usbd_cdc.c
+        USB_DEVICE/App/usbd_cdc_if.c
+    )
+else()
+    message(FATAL_ERROR "Unknown CANABLE_USB_PROTOCOL '${CANABLE_USB_PROTOCOL}'; use GS_USB or CAN_X")
+endif()
+
 add_executable(canable
     Core/Startup/startup_stm32f072c8tx.s
-    Core/Src/CAN_Buffer.c
-    Core/Src/CAN_Filter.c
-    Core/Src/CAN_Mode.c
-    Core/Src/ErrorStatus.c
+    ${CANABLE_PROTOCOL_SOURCES}
     Core/Src/GPIO_Handler.c
-    Core/Src/IRQ_Handler.c
-    Core/Src/PollingRoutine.c
-    Core/Src/RingBuffer.c
-    Core/Src/STM32_UID.c
     Core/Src/TimerCallback.c
-    Core/Src/UART_DMA_Idle_Circular_Drv_STM32.c
-    Core/Src/USB_CAN_Convert.c
-    Core/Src/USB_CDC_Buffer.c
     Core/Src/main.c
     Core/Src/stm32f0xx_hal_msp.c
     Core/Src/stm32f0xx_it.c
@@ -73,12 +90,10 @@ add_executable(canable
     Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_uart.c
     Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_uart_ex.c
     Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_ll_usb.c
-    Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Src/usbd_cdc.c
     Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_core.c
     Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_ctlreq.c
     Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_ioreq.c
     USB_DEVICE/App/usb_device.c
-    USB_DEVICE/App/usbd_cdc_if.c
     USB_DEVICE/App/usbd_desc.c
     USB_DEVICE/Target/usbd_conf.c
 )
@@ -102,6 +117,7 @@ target_include_directories(canable PRIVATE
 )
 target_compile_definitions(canable PRIVATE
     USE_HAL_DRIVER STM32F072xB ${CANABLE_BOARD_DEFINE}
+    $<$<STREQUAL:${CANABLE_USB_PROTOCOL},GS_USB>:CANABLE_GS_USB>
     $<$<CONFIG:Debug>:DEBUG>
 )
 set(CANABLE_CPU_OPTIONS -mcpu=cortex-m0 -mthumb -mfloat-abi=soft)
@@ -141,4 +157,4 @@ add_custom_command(TARGET canable POST_BUILD
     VERBATIM
 )
 
-message(STATUS "CANable board: ${CANABLE_BOARD}; MCU: ${CANABLE_MCU}; Flash: ${CANABLE_FLASH_BYTES} bytes; RAM: 16384 bytes")
+message(STATUS "CANable board: ${CANABLE_BOARD}; MCU: ${CANABLE_MCU}; USB: ${CANABLE_USB_PROTOCOL}; Flash: ${CANABLE_FLASH_BYTES} bytes; RAM: 16384 bytes")

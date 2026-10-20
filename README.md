@@ -12,7 +12,8 @@ CubeIDE, CubeMX, code generation and package downloads are not required.
 
 The default target is `STM32F072CB` (128 KiB Flash, 16 KiB RAM) with the
 `BLUEPILL` board configuration for an STM32F072CB board with an SN65HVD230
-CAN transceiver. From the repository root:
+CAN transceiver. The default USB protocol is now `GS_USB`, for native Linux
+SocketCAN through the kernel's `gs_usb` driver. From the repository root:
 
 ```sh
 cmake --preset debug
@@ -54,6 +55,73 @@ The default `BLUEPILL` wiring is:
 
 The PC13 LED blinks three times at startup, then indicates CAN activity.
 The power LED is not controlled by the firmware.
+
+### SocketCAN on Linux
+
+Build the `release` preset above and flash `build/release/canable.bin` at
+`0x08000000` (or use `canable.elf` / `canable.hex` with your programmer).
+Reconnect USB after flashing. The GS_USB build exposes a CAN network interface
+instead of `/dev/ttyACM0`; it does not need `slcand` or a userspace serial bridge.
+
+Install `can-utils` using your distribution's package manager, then:
+
+```sh
+sudo modprobe gs_usb
+ip -brief link
+# Replace can0 below if Linux assigned a different interface name.
+sudo ip link set can0 up type can bitrate 500000
+candump can0
+```
+
+CAN remains stopped after boot until Linux brings the interface up. To change
+the bitrate, bring it down first. For passive monitoring (no ACK or transmission):
+
+```sh
+sudo ip link set can0 down
+sudo ip link set can0 up type can bitrate 500000 listen-only on
+```
+
+Passive monitoring needs other active nodes on the bus to acknowledge traffic.
+To return to normal operation, use `down`, then `up type can bitrate 500000
+listen-only off`. `ip -details -statistics link show can0` shows link state and
+statistics. After a bus-off error, fix the bus problem and explicitly bring the
+interface down and up; automatic `restart-ms` recovery is not implemented.
+
+Supported: one classic CAN channel, 11-bit and 29-bit identifiers, data and RTR
+frames, listen-only and internal loopback. TX echo is sent only on successful
+controller transmission. CAN FD, hardware timestamps and one-shot mode are not
+advertised. The USB descriptors use the candleLight compatibility ID
+`1209:2323`, recognized by Linux `gs_usb`; this ID is
+[allocated to candleLight](https://pid.codes/1209/2323/).
+Protocol compatibility follows the
+[Linux gs_usb driver](https://github.com/torvalds/linux/blob/master/drivers/net/can/usb/gs_usb.c).
+
+### Original CAN-X protocol
+
+The original CDC protocol is still available as a separate firmware build:
+
+```sh
+cmake --preset can-x
+cmake --build --preset can-x
+```
+
+Flash the outputs from `build/can-x/` to restore `/dev/ttyACM0` and CAN-X.
+For a custom build, select `-DCANABLE_USB_PROTOCOL=CAN_X` or `GS_USB`.
+The original Eclipse build files continue to select CAN-X.
+
+### Host tests
+
+The protocol and queue tests use a native C compiler and stub hardware calls;
+they do not require a connected adapter or the Arm toolchain:
+
+```sh
+cmake -S tests -B build/host-tests -G Ninja
+cmake --build build/host-tests
+ctest --test-dir build/host-tests --output-on-failure
+```
+
+These tests exercise the production USB/CAN code. Actual USB enumeration and
+traffic on a physical CAN bus still need verification after flashing.
 
 ---
 ### Supported CAN bus interfaces

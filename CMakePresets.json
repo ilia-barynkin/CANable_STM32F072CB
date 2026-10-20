@@ -14,12 +14,13 @@
       "cacheVariables": {
         "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/arm-none-eabi.cmake",
         "CANABLE_MCU": "STM32F072CB",
-        "CANABLE_BOARD": "BLUEPILL"
+        "CANABLE_BOARD": "BLUEPILL",
+        "CANABLE_USB_PROTOCOL": "GS_USB"
       }
     },
     {
       "name": "debug",
-      "displayName": "Blue Pill STM32F072CB - Debug",
+      "displayName": "Blue Pill STM32F072CB - SocketCAN Debug",
       "inherits": "base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
@@ -27,10 +28,19 @@
     },
     {
       "name": "release",
-      "displayName": "Blue Pill STM32F072CB - Release",
+      "displayName": "Blue Pill STM32F072CB - SocketCAN Release",
       "inherits": "base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "can-x",
+      "displayName": "Blue Pill STM32F072CB - legacy CAN-X Release",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CANABLE_USB_PROTOCOL": "CAN_X"
       }
     }
   ],
@@ -42,6 +52,10 @@
     {
       "name": "release",
       "configurePreset": "release"
+    },
+    {
+      "name": "can-x",
+      "configurePreset": "can-x"
     }
   ]
 }

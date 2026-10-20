@@ -23,7 +23,11 @@
 #include "stm32f0xx_hal.h"
 #include "usbd_def.h"
 #include "usbd_core.h"
+#ifdef CANABLE_GS_USB
+#include "usbd_gs_usb.h"
+#else
 #include "usbd_cdc.h"
+#endif
 
 /* USER CODE BEGIN Includes */
 
@@ -73,7 +77,11 @@ void HAL_PCD_MspInit(PCD_HandleTypeDef* pcdHandle)
     __HAL_RCC_USB_CLK_ENABLE();
 
     /* Peripheral interrupt init */
+#ifdef CANABLE_GS_USB
+    HAL_NVIC_SetPriority(USB_IRQn, 2, 0);
+#else
     HAL_NVIC_SetPriority(USB_IRQn, 0, 0);
+#endif
     HAL_NVIC_EnableIRQ(USB_IRQn);
   /* USER CODE BEGIN USB_MspInit 1 */
 
@@ -335,9 +343,14 @@ USBD_StatusTypeDef USBD_LL_Init(USBD_HandleTypeDef *pdev)
   HAL_PCDEx_PMAConfig((PCD_HandleTypeDef*)pdev->pData , 0x80 , PCD_SNG_BUF, 0x58);
   /* USER CODE END EndPoint_Configuration */
   /* USER CODE BEGIN EndPoint_Configuration_CDC */
+#ifdef CANABLE_GS_USB
+  HAL_PCDEx_PMAConfig((PCD_HandleTypeDef*)pdev->pData, GS_USB_IN_EP, PCD_SNG_BUF, 0xC0);
+  HAL_PCDEx_PMAConfig((PCD_HandleTypeDef*)pdev->pData, GS_USB_OUT_EP, PCD_SNG_BUF, 0x110);
+#else
   HAL_PCDEx_PMAConfig((PCD_HandleTypeDef*)pdev->pData , 0x81 , PCD_SNG_BUF, 0xC0);
   HAL_PCDEx_PMAConfig((PCD_HandleTypeDef*)pdev->pData , 0x01 , PCD_SNG_BUF, 0x110);
   HAL_PCDEx_PMAConfig((PCD_HandleTypeDef*)pdev->pData , 0x82 , PCD_SNG_BUF, 0x100);
+#endif
   /* USER CODE END EndPoint_Configuration_CDC */
   return USBD_OK;
 }
@@ -591,8 +604,14 @@ void USBD_LL_Delay(uint32_t Delay)
   */
 void *USBD_static_malloc(uint32_t size)
 {
+#ifdef CANABLE_GS_USB
+  /* gs_usb owns static storage and never allocates through this hook. */
+  (void)size;
+  return NULL;
+#else
   static uint32_t mem[(sizeof(USBD_CDC_HandleTypeDef)/4)+1];/* On 32-bit boundary */
   return mem;
+#endif
 }
 
 /**

@@ -70,7 +70,11 @@
 /*---------- -----------*/
 #define USBD_DEBUG_LEVEL     0
 /*---------- -----------*/
+#ifdef CANABLE_GS_USB
+#define USBD_SELF_POWERED     0
+#else
 #define USBD_SELF_POWERED     1
+#endif
 /*---------- -----------*/
 #define MAX_STATIC_ALLOC_SIZE     512
 
