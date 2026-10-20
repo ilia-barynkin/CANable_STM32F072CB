@@ -1,19 +1,41 @@
-## CANable_STM32F072C8 CAN bus interface
-> [!NOTE]This CANable_STM32F072C8 interface project is based off my original project that uses a ST STM32F4-Discovery kit. Check the wiki for more info https://github.com/karlyamashita/CANable_USB_CAN/wiki
+# CANable for STM32F072CB
 
-> Read the wiki for more information on the original project and the CAN-X CAN bus analyzer software at this link https://github.com/karlyamashita/USB_to_CAN/wiki
+**`stm32f072cb` is the STM32F072CB adaptation branch** of
+[Karl Yamashita's CANable_STM32F072C8 project](https://github.com/karlyamashita/CANable_STM32F072C8).
+It adds an offline CMake build, a board configuration for STM32F072CB with an
+SN65HVD230 transceiver, and native Linux SocketCAN support through `gs_usb`.
+The original CAN-X USB CDC protocol remains available as an alternative build.
 
-### Build with CMake
+| Default setting in this branch | Value |
+| --- | --- |
+| MCU | **STM32F072CB**, 128 KiB Flash, 16 KiB RAM |
+| Board configuration | `BLUEPILL`: STM32F072CB board, CAN on PB8/PB9, LED on PC13 |
+| USB protocol | `GS_USB`: Linux SocketCAN network interface |
+| Build system | CMake + Ninja + GNU Arm Embedded toolchain |
+
+`BLUEPILL` describes the wiring and LED layout used here; the MCU target is
+STM32F072CB. C8 support and the original board configurations are retained as
+optional build targets. Some source, startup and linker filenames still contain
+`STM32F072C8`; CMake selects the Flash size for the requested MCU.
+
+## Get this branch
+
+```sh
+git clone --branch stm32f072cb https://github.com/ilia-barynkin/CANable_STM32F072CB.git
+cd CANable_STM32F072CB
+```
+
+For an existing clone, use `git switch stm32f072cb` before building.
+
+## Build with CMake
 
 Requirements: CMake 3.20 or newer, Ninja, and the GNU Arm Embedded toolchain
 (GCC 11 or newer), including `arm-none-eabi-gcc`, binutils and newlib-nano,
 available on `PATH`. With these tools installed, builds are fully offline;
 CubeIDE, CubeMX, code generation and package downloads are not required.
 
-The default target is `STM32F072CB` (128 KiB Flash, 16 KiB RAM) with the
-`BLUEPILL` board configuration for an STM32F072CB board with an SN65HVD230
-CAN transceiver. The default USB protocol is now `GS_USB`, for native Linux
-SocketCAN through the kernel's `gs_usb` driver. From the repository root:
+The `debug` and `release` presets both build for **STM32F072CB + BLUEPILL +
+GS_USB**. From the repository root:
 
 ```sh
 cmake --preset debug
@@ -28,7 +50,10 @@ Debug outputs are `build/debug/canable.elf`, `canable.bin`, `canable.hex` and
 outputs use `build/release/`. Firmware starts at `0x08000000`, with no
 bootloader offset.
 
-Select the MCU and board independently with `CANABLE_MCU` and `CANABLE_BOARD`:
+### Optional C8 and other board builds
+
+Select the MCU and board independently with `CANABLE_MCU` and `CANABLE_BOARD`.
+For example, to build for the original C8 target instead of the default CB:
 
 ```sh
 cmake -S . -B build/custom -G Ninja -DCMAKE_BUILD_TYPE=Release \
@@ -43,7 +68,9 @@ C8 filenames and support both MCUs.
 Board choices are `BLUEPILL`, `FYSETC`, `P_CAN_07e`, `CANable_V1_0_Pro`,
 `Jhoinrch`, `InnoMaker` and `InnoMakerX2`.
 
-The default `BLUEPILL` wiring is:
+## STM32F072CB board wiring
+
+The default `BLUEPILL` configuration uses an external SN65HVD230 transceiver:
 
 | STM32 pin | Connection |
 | --- | --- |
@@ -56,7 +83,7 @@ The default `BLUEPILL` wiring is:
 The PC13 LED blinks three times at startup, then indicates CAN activity.
 The power LED is not controlled by the firmware.
 
-### SocketCAN on Linux
+## SocketCAN on Linux
 
 Build the `release` preset above and flash `build/release/canable.bin` at
 `0x08000000` (or use `canable.elf` / `canable.hex` with your programmer).
@@ -96,7 +123,7 @@ advertised. The USB descriptors use the candleLight compatibility ID
 Protocol compatibility follows the
 [Linux gs_usb driver](https://github.com/torvalds/linux/blob/master/drivers/net/can/usb/gs_usb.c).
 
-### Original CAN-X protocol
+## Original CAN-X protocol
 
 The original CDC protocol is still available as a separate firmware build:
 
@@ -109,7 +136,7 @@ Flash the outputs from `build/can-x/` to restore `/dev/ttyACM0` and CAN-X.
 For a custom build, select `-DCANABLE_USB_PROTOCOL=CAN_X` or `GS_USB`.
 The original Eclipse build files continue to select CAN-X.
 
-### Host tests
+## Host tests
 
 The protocol and queue tests use a native C compiler and stub hardware calls;
 they do not require a connected adapter or the Arm toolchain:
@@ -123,29 +150,17 @@ ctest --test-dir build/host-tests --output-on-failure
 These tests exercise the production USB/CAN code. Actual USB enumeration and
 traffic on a physical CAN bus still need verification after flashing.
 
----
-### Supported CAN bus interfaces
-CANable_STM32F072C8 CAN bus interface source code for use with STM32F072C8. The code works with the following adapters
+## Upstream project and license
 
-* FYSETC
-    * https://amzn.to/3HpTOA6
-* Jhoinrch
-    * https://amzn.to/45cS3PZ
-* P_CAN 0.7e ( the name on the PCB )
-    * https://www.aliexpress.us/item/3256806155920255.html 
-* CANAble V1.0 Pro
-    * https://www.aliexpress.us/item/3256808639155688.html
-* InnoMaker USB2CAN
-    * https://amzn.to/43gnPKl
-* InnoMaker USB2CAN-X2
-    * https://amzn.to/3JbrjqF
+The original firmware and adapter support were developed by **Karl Yamashita**.
+This branch preserves the upstream Git history and adds the STM32F072CB,
+CMake and SocketCAN changes described above. The retained adapter configurations
+come from upstream; they do not imply hardware validation of this branch on
+every adapter.
 
-### FDCAN support
-These devices do not support FDCAN. I am working on CANable_STM32G431xx project to support the STM32G431 and STM32G0Bx series.
+- [Original CANable_STM32F072C8 repository](https://github.com/karlyamashita/CANable_STM32F072C8)
+- [Original CAN-X protocol documentation](https://github.com/karlyamashita/USB_to_CAN/wiki)
+- [CAN-X CDC analyzer](https://github.com/karlyamashita/CAN-X) for the `can-x` firmware build
 
----
-### Documentation
-Check out the wiki for more information https://github.com/karlyamashita/CANable__STM32F072C8/wiki
-
-### CAN bus analyzer software
-[CAN-X CDC](https://github.com/karlyamashita/CAN-X) has been updated to work with these devices. There are some pending issues but so far sending and receiving CAN messages works.
+The upstream AGPL-3.0 license is retained in [LICENSE.txt](LICENSE.txt).
+Bundled ST and CMSIS components retain their own license files and notices.
