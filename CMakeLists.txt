@@ -130,7 +130,7 @@ target_compile_options(canable PRIVATE
 )
 
 # The startup/vector table and memory layout are shared by F072C8 and F072CB.
-# The linker script keeps its original 64 KiB default for legacy IDE builds.
+# CMake supplies the selected Flash size through __flash_size__ below.
 set(CANABLE_LINKER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/STM32F072C8TX_FLASH.ld")
 set(CANABLE_OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 if(CMAKE_CONFIGURATION_TYPES)

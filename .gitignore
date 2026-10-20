@@ -3,6 +3,15 @@ Debug/
 Release/
 /build/
 /CMakeUserPresets.json
+
+# Local Eclipse / STM32CubeIDE / CubeMX project metadata
+/.project
+/.cproject
+/.mxproject
+/.settings/
+/*.launch
+/*.ioc
+
 #Drivers/
 #Middlewares/
 

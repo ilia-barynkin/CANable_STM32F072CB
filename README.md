@@ -34,6 +34,12 @@ Requirements: CMake 3.20 or newer, Ninja, and the GNU Arm Embedded toolchain
 available on `PATH`. With these tools installed, builds are fully offline;
 CubeIDE, CubeMX, code generation and package downloads are not required.
 
+Build settings for this branch are maintained in `CMakeLists.txt` and
+`CMakePresets.json`. The old Eclipse/CubeIDE project, debug launch settings and
+CubeMX `.ioc` file have been removed; their original versions remain available
+in the upstream repository and Git history. Peripheral initialization is
+maintained directly in the source files.
+
 The `debug` and `release` presets both build for **STM32F072CB + BLUEPILL +
 GS_USB**. From the repository root:
 
@@ -134,7 +140,6 @@ cmake --build --preset can-x
 
 Flash the outputs from `build/can-x/` to restore `/dev/ttyACM0` and CAN-X.
 For a custom build, select `-DCANABLE_USB_PROTOCOL=CAN_X` or `GS_USB`.
-The original Eclipse build files continue to select CAN-X.
 
 ## Host tests
 
